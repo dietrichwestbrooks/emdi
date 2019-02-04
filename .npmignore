@@ -1,0 +1,5 @@
+# typescript files
+src/
+tsconfig.json
+tslint.json
+index.d.ts

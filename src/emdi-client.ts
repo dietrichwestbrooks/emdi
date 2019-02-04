@@ -19,8 +19,6 @@ import {
   EventSubListResponse,
 } from './commands';
 
-declare var $: any;
-
 export class EmdiClient {
   private emdi: EmdiService;
   private sessionId = 1;
@@ -32,40 +30,48 @@ export class EmdiClient {
 
   private subscription!: Subscription;
 
-  private connected = new BehaviorSubject<boolean>(false);
-  private disconnected = new BehaviorSubject<boolean>(false);
-  private validated = new BehaviorSubject<boolean>(false);
-  private event = new BehaviorSubject<EmdiEvent | null>(null);
-  private response = new BehaviorSubject<EmdiResponse | null>(null);
-  private request = new BehaviorSubject<EmdiCommand | null>(null);
-  private error = new BehaviorSubject<EmdiError | null>(null);
+  private _connected$ = new BehaviorSubject<boolean>(false);
+  private _disconnected$ = new BehaviorSubject<boolean>(false);
+  private _validated$ = new BehaviorSubject<boolean>(false);
+  private _event$ = new BehaviorSubject<EmdiEvent | null>(null);
+  private _response$ = new BehaviorSubject<EmdiResponse | null>(null);
+  private _request$ = new BehaviorSubject<EmdiCommand | null>(null);
+  private _error$ = new BehaviorSubject<EmdiError | null>(null);
 
   isConnected = false;
-
-  onConnected$: Observable<boolean>;
-  onDisconnected$: Observable<boolean>;
-  onValidated$: Observable<boolean>;
-  onEvent$: Observable<EmdiEvent>;
-  onResponse$: Observable<EmdiResponse>;
-  onRequest$: Observable<EmdiCommand>;
-  onError$: Observable<EmdiError>;
-
   deviceId = 0;
-
-  // 'ATI_78D66F037219'; // EGM
-  // 'ATI_00155D144F02'; // Local
   egmId = '';
 
   constructor() {
     this.emdi = new EmdiService();
+  }
 
-    this.onConnected$ = this.connected.asObservable();
-    this.onDisconnected$ = this.disconnected.asObservable();
-    this.onValidated$ = this.validated.asObservable();
-    this.onEvent$ = this.event.asObservable().pipe(filter(e => e != null), map(e => <EmdiEvent>e));
-    this.onResponse$ = this.response.asObservable().pipe(filter(r => r != null), map(r => <EmdiResponse>r));
-    this.onRequest$ = this.request.asObservable().pipe(filter(c => c != null), map(c => <EmdiCommand>c));
-    this.onError$ = this.error.asObservable().pipe(filter(e => e != null), map(e => <EmdiError>e));
+  get error$() {
+    return this._error$.asObservable().pipe(filter(e => e != null), map(e => <EmdiError>e));
+  }
+
+  get connected$() {
+    return this._connected$.asObservable();
+  }
+
+  get disconnected$() {
+    return this._disconnected$.asObservable();
+  }
+
+  get validated$() {
+    return this._validated$.asObservable();
+  }
+
+  get event$() {
+    return this._event$.asObservable().pipe(filter(e => e != null), map(e => <EmdiEvent>e));
+  }
+
+  get request$() {
+    return this._request$.asObservable().pipe(filter(c => c != null), map(c => <EmdiCommand>c));
+  }
+
+  get response$() {
+    return this._response$.asObservable().pipe(filter(r => r != null), map(r => <EmdiResponse>r));
   }
 
   connect(deviceId: number, accessToken: number): Promise<boolean> {
@@ -224,15 +230,15 @@ export class EmdiClient {
   }
 
   private onEvent(event: EmdiEvent) {
-    this.event.next(event);
+    this._event$.next(event);
   }
 
   private onResponse(response: EmdiResponse) {
-    this.response.next(response);
+    this._response$.next(response);
   }
 
   private onRequest(command: EmdiCommand) {
-    this.request.next(command);
+    this._request$.next(command);
   }
 
   private onError(error: EmdiError) {
@@ -241,13 +247,13 @@ export class EmdiClient {
     }
 
     clearInterval(this.pulseInterval);
-    this.error.next(error);
+    this._error$.next(error);
     this.isConnected = false;
     this.reconnect();
   }
 
   private onConnected() {
-    this.connected.next(true);
+    this._connected$.next(true);
   }
 
   private onDisconnected() {
@@ -256,13 +262,13 @@ export class EmdiClient {
     }
 
     clearInterval(this.pulseInterval);
-    this.disconnected.next(true);
+    this._disconnected$.next(true);
     this.isConnected = false;
     this.reconnect();
   }
 
   private onValidated() {
-    this.validated.next(true);
+    this._validated$.next(true);
   }
 
   private sendCommand(command: EmdiCommand): Promise<EmdiResponse> {
@@ -292,7 +298,7 @@ export class EmdiClient {
 
         this.sessionId++;
 
-        const subscription = this.onResponse$
+        const subscription = this.response$
           .pipe(
             filter(response => response.sessionId === sessionId),
             timeout(30000),
@@ -388,7 +394,7 @@ export class EmdiClient {
 
     xml = xml.replace(reg, '$1\r\n$2$3');
 
-    $.each(xml.split('\r\n'), (index: number, node: string) => {
+    xml.split('\r\n').forEach((node: string) => {
       let indent = 0;
       if (node.match(/.+<\/\w[^>]*>$/)) {
         indent = 0;

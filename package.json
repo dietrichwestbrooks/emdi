@@ -1,18 +1,21 @@
 {
-  "name": "emdi",
-  "version": "1.0.1",
+  "name": "emdijs",
+  "version": "0.0.5",
   "description": "G2S EMDI JavaScript Client Library",
   "main": "dist/index.js",
   "type": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc --project ./src/tsconfig.json"
+    "build": "tsc --project ./src/tsconfig.lib.json"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dietrichwestbrooks/emdi.git"
    },
-  "keywords": [],
+  "keywords": [
+    "G2S",
+    "EMDI"
+  ],
   "author": "Dietrich Westbrooks <dietrichwestbrooks1@gmail.com>",
   "license": "ISC",
   "bugs": {
