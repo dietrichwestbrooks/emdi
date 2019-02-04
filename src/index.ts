@@ -1,3 +1,4 @@
+export * from './commands';
 import { EmdiClient } from './emdi-client';
 
 export const connect = async (deviceId: number, accessToken: number): Promise<EmdiClient> => {
